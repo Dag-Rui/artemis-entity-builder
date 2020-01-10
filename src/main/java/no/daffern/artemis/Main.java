@@ -20,11 +20,12 @@ public class Main {
 
     String outputUrl = "build/generated-sources/entity-factory/";
 
-    FileCollection files = ImmutableFileCollection.of(new File("src/test/java/no/daffern/artemis/"));
+    FileCollection files = ImmutableFileCollection.of(new File("src/test/java/no/daffern/artemis/dummy"));
 
-    List<ComponentInfo> componentInfos = new ComponentCollector().collect(files, Collections.singletonList("com.artemis.Component"));
+    List<ComponentInfo> componentInfos = new ComponentCollector()
+        .collect(files, Collections.singletonList("com.artemis.Component"));
 
-    JavaFile[] outputFiles = new SourceGenerator().build(componentInfos, "set");
+    JavaFile[] outputFiles = new SourceGenerator().build(componentInfos, true);
 
     for (JavaFile file : outputFiles){
       file.writeTo(Paths.get(outputUrl));

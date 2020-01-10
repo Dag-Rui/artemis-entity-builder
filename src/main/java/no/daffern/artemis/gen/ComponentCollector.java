@@ -1,6 +1,7 @@
 package no.daffern.artemis.gen;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ public class ComponentCollector {
 
     for (File file : files) {
 
-      JavaType<?> javaType = Roaster.parse(file);
+      JavaType<?> javaType = Roaster.parse(new FileInputStream(file));
 
       if (javaType instanceof JavaClassImpl) {
         JavaClassImpl type = (JavaClassImpl) javaType;

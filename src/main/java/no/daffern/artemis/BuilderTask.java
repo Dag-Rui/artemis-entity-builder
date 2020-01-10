@@ -11,7 +11,6 @@ import no.daffern.artemis.gen.SourceGenerator;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskAction;
 
 public class BuilderTask extends DefaultTask {
@@ -23,17 +22,17 @@ public class BuilderTask extends DefaultTask {
   private File outputFolder;
 
   @Input
-  private String createMethodPrefix = "set";
+  private List<String> componentSuperTypes = Collections.singletonList("com.artemis.Component");
 
   @Input
-  private List<String> componentSuperTypes = Collections.singletonList("com.artemis.Component");
+  private boolean stripComponentName = true;
 
   @TaskAction
   public void build() {
 
     try {
       List<ComponentInfo> infos = new ComponentCollector().collect(inputDirectories, componentSuperTypes);
-      JavaFile[] outputFiles = new SourceGenerator().build(infos, createMethodPrefix);
+      JavaFile[] outputFiles = new SourceGenerator().build(infos, stripComponentName);
 
       for (JavaFile file : outputFiles) {
         file.writeTo(outputFolder);
@@ -60,19 +59,19 @@ public class BuilderTask extends DefaultTask {
     this.outputFolder = outputFolder;
   }
 
-  public String getCreateMethodPrefix() {
-    return createMethodPrefix;
-  }
-
-  public void setCreateMethodPrefix(String createMethodPrefix) {
-    this.createMethodPrefix = createMethodPrefix;
-  }
-
   public List<String> getComponentSuperTypes() {
     return componentSuperTypes;
   }
 
   public void setComponentSuperTypes(List<String> componentSuperTypes) {
     this.componentSuperTypes = componentSuperTypes;
+  }
+
+  public boolean isStripComponentName() {
+    return stripComponentName;
+  }
+
+  public void setStripComponentName(boolean stripComponentName) {
+    this.stripComponentName = stripComponentName;
   }
 }

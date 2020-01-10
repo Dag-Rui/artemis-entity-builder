@@ -18,14 +18,14 @@ public class SourceGenerator {
   private static ClassName entityBuilderName = ClassName.get("no.daffern.artemis", "EntityBuilder");
   private static ClassName superMapperName = ClassName.get("no.daffern.artemis", "SuperMapper");
 
-  public JavaFile[] build(List<ComponentInfo> componentInfos, String createMethodPrefix) {
+  public JavaFile[] build(List<ComponentInfo> componentInfos, boolean stripComponentName) {
     JavaFile superMapper = generateSuperMapper(componentInfos);
-    JavaFile entityBuilder = generateBuilder(componentInfos, superMapper, createMethodPrefix);
+    JavaFile entityBuilder = generateBuilder(componentInfos, superMapper, stripComponentName);
 
     return new JavaFile[]{superMapper, entityBuilder};
   }
 
-  private JavaFile generateBuilder(List<ComponentInfo> componentInfos, JavaFile mapperFile, String createMethodPrefix) {
+  private JavaFile generateBuilder(List<ComponentInfo> componentInfos, JavaFile mapperFile, boolean stripComponentName) {
     TypeSpec.Builder typeSpec = TypeSpec.classBuilder("EntityBuilder")
         .addModifiers(Modifier.PUBLIC)
         .addField(FieldSpec.builder(superMapperName, "mapper")
@@ -42,52 +42,70 @@ public class SourceGenerator {
             .addCode("this.entityId = entityId;\n")
             .build());
 
+    //Entity method
+    typeSpec.addMethod(MethodSpec.methodBuilder("entity")
+        .addModifiers(Modifier.PUBLIC)
+        .addCode("mapper.getEntity(entityId);\n")
+        .build());
+
     for (ComponentInfo componentInfo : componentInfos) {
       String mapperCode = "mapper." + getMapperName(componentInfo.getName());
+      String methodName = StringUtils.uncapitalize(componentInfo.getName());
+      if (stripComponentName){
+        methodName = methodName.replace("Component", "");
+      }
 
-      //Create methods
+      //Default create method
+      typeSpec.addMethod(MethodSpec
+          .methodBuilder(methodName)
+          .addModifiers(Modifier.PUBLIC)
+          .returns(entityBuilderName)
+          .addCode(mapperCode + ".create(entityId);\n")
+          .addCode("return this;\n")
+          .build());
+
+      //Other create methods
       for (MethodInfo methodInfo : componentInfo.getMethodInfos()) {
         MethodSpec.Builder methodSpec = MethodSpec
-            .methodBuilder(StringUtils.uncapitalize(componentInfo.getName()))
+            .methodBuilder(methodName + StringUtils.capitalize(methodInfo.getMethodName()))
             .addModifiers(Modifier.PUBLIC)
             .returns(entityBuilderName)
-            .addCode(componentInfo.getName() + " gen = ")
+            .addCode(componentInfo.getName() + " component = ")
             .addCode(mapperCode + ".create(entityId);\n");
 
         StringBuilder parameters = new StringBuilder();
 
-        if (methodInfo.getMethodName().startsWith(createMethodPrefix)) {
-          for (ParameterInfo parameterInfo : methodInfo.getParameterInfos()) {
-            methodSpec.addParameter(findTypeName(parameterInfo), parameterInfo.getVariableName());
-            parameters.append(parameterInfo.getVariableName()).append(", ");
-          }
+        for (ParameterInfo parameterInfo : methodInfo.getParameterInfos()) {
+          methodSpec.addParameter(findTypeName(parameterInfo), parameterInfo.getVariableName());
+          parameters.append(parameterInfo.getVariableName()).append(", ");
         }
+
         if (parameters.length() > 0) {
-          methodSpec.addCode("gen.set(" + parameters.substring(0, parameters.length() - 2) + ");\n")
+          methodSpec.addCode("component." + methodInfo.getMethodName())
+              .addCode("(" + parameters.substring(0, parameters.length() - 2) + ");\n")
               .addCode("return this;\n");
           typeSpec.addMethod(methodSpec.build());
         }
       }
       //get method
-      typeSpec.addMethod(MethodSpec.methodBuilder("get" + componentInfo.getName())
+      typeSpec.addMethod(MethodSpec.methodBuilder("get" + StringUtils.capitalize(methodName))
           .addModifiers(Modifier.PUBLIC)
           .returns(ClassName.get(componentInfo.getPackage(), componentInfo.getName()))
           .addCode("return " + mapperCode + ".get(entityId);\n")
           .build());
 
       //has method
-      typeSpec.addMethod(MethodSpec.methodBuilder("has" + componentInfo.getName())
+      typeSpec.addMethod(MethodSpec.methodBuilder("has" + StringUtils.capitalize(methodName))
           .addModifiers(Modifier.PUBLIC)
           .returns(TypeName.BOOLEAN)
           .addCode("return " + mapperCode + ".has(entityId);\n")
           .build());
 
       //remove method
-      typeSpec.addMethod(MethodSpec.methodBuilder("remove" + componentInfo.getName())
+      typeSpec.addMethod(MethodSpec.methodBuilder("remove" + StringUtils.capitalize(methodName))
           .addModifiers(Modifier.PUBLIC)
           .addCode(mapperCode + ".remove(entityId);\n")
           .build());
-
     }
 
     return JavaFile.builder("no.daffern.artemis", typeSpec.build()).build();
@@ -101,6 +119,13 @@ public class SourceGenerator {
             .addModifiers(Modifier.PROTECTED)
             .addAnnotation(Override.class)
             .build());
+
+    typeSpec.addMethod(MethodSpec.methodBuilder("getEntity")
+        .addModifiers(Modifier.PUBLIC)
+        .addParameter(TypeName.INT, "entityId")
+        .returns(ClassName.get("com.artemis", "Entity"))
+        .addCode("return getWorld().getEntity(entityId);\n")
+        .build());
 
     for (ComponentInfo componentInfo : componentInfos) {
       ClassName mapperName = ClassName.get("com.artemis", "ComponentMapper");

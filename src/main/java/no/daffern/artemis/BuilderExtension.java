@@ -1,30 +1,34 @@
 package no.daffern.artemis;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.SourceSet;
 
 public class BuilderExtension {
 
-  private List<String> inputFolders;
-  private String outputFolder = "build/generated-sources/no/daffern/artemis/";
+  private SourceSet src;
+
+  private File outputFolder;
 
   private String createMethodPrefix = "set";
   private List<String> componentSuperTypes = Collections.singletonList("com.artemis.Component");
 
-
-  public List<String> getInputFolders() {
-    return inputFolders;
+  public SourceSet getSrc() {
+    return src;
   }
 
-  public void setInputFolders(List<String> inputFolders) {
-    this.inputFolders = inputFolders;
+  public void setSrc(SourceSet src) {
+    this.src = src;
   }
 
-  public String getOutputFolder() {
+  public File getOutputFolder() {
     return outputFolder;
   }
 
-  public void setOutputFolder(String outputFolder) {
+  public void setOutputFolder(File outputFolder) {
     this.outputFolder = outputFolder;
   }
 

@@ -7,7 +7,6 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import java.io.File;
 import java.util.List;
 import javax.lang.model.element.Modifier;
 import no.daffern.artemis.gen.ComponentInfo.MethodInfo;
@@ -19,7 +18,7 @@ public class SourceGenerator {
   private static ClassName entityBuilderName = ClassName.get("no.daffern.artemis", "EntityBuilder");
   private static ClassName superMapperName = ClassName.get("no.daffern.artemis", "SuperMapper");
 
-  public JavaFile[] build(List<ComponentInfo> componentInfos, File outputFolder, String createMethodPrefix) {
+  public JavaFile[] build(List<ComponentInfo> componentInfos, String createMethodPrefix) {
     JavaFile superMapper = generateSuperMapper(componentInfos);
     JavaFile entityBuilder = generateBuilder(componentInfos, superMapper, createMethodPrefix);
 
@@ -63,15 +62,17 @@ public class SourceGenerator {
             parameters.append(parameterInfo.getVariableName()).append(", ");
           }
         }
-        methodSpec.addCode("gen.set(" + parameters.substring(0, parameters.length() - 2) + ");\n")
-            .addCode("return this;\n");
-        typeSpec.addMethod(methodSpec.build());
+        if (parameters.length() > 0) {
+          methodSpec.addCode("gen.set(" + parameters.substring(0, parameters.length() - 2) + ");\n")
+              .addCode("return this;\n");
+          typeSpec.addMethod(methodSpec.build());
+        }
       }
       //get method
       typeSpec.addMethod(MethodSpec.methodBuilder("get" + componentInfo.getName())
           .addModifiers(Modifier.PUBLIC)
           .returns(ClassName.get(componentInfo.getPackage(), componentInfo.getName()))
-          .addCode("return mapper." + mapperCode + ".get(entityId);\n")
+          .addCode("return " + mapperCode + ".get(entityId);\n")
           .build());
 
       //has method
@@ -95,7 +96,11 @@ public class SourceGenerator {
   private JavaFile generateSuperMapper(List<ComponentInfo> componentInfos) {
     TypeSpec.Builder typeSpec = TypeSpec.classBuilder("SuperMapper")
         .superclass(ClassName.get("com.artemis", "BaseSystem"))
-        .addModifiers(Modifier.PUBLIC);
+        .addModifiers(Modifier.PUBLIC)
+        .addMethod(MethodSpec.methodBuilder("processSystem")
+            .addModifiers(Modifier.PROTECTED)
+            .addAnnotation(Override.class)
+            .build());
 
     for (ComponentInfo componentInfo : componentInfos) {
       ClassName mapperName = ClassName.get("com.artemis", "ComponentMapper");
@@ -113,9 +118,8 @@ public class SourceGenerator {
 
     typeSpec.addMethod(MethodSpec.methodBuilder("create")
         .addModifiers(Modifier.PUBLIC)
-        .addParameter(TypeName.INT, "entityId")
         .returns(ClassName.get("no.daffern.artemis", "EntityBuilder"))
-        .addCode("return get(getWorld().create(entityId));\n")
+        .addCode("return get(getWorld().create());\n")
         .build());
 
     typeSpec.addMethod(MethodSpec.methodBuilder("get")

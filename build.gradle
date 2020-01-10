@@ -1,7 +1,6 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'signing'
 }
 
 group 'no.daffern.artemis'
@@ -10,12 +9,13 @@ version '1.0-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 java {
-    withJavadocJar()
-    withSourcesJar()
+   // withJavadocJar()
+   // withSourcesJar()
 }
 
 dependencies {
@@ -30,7 +30,7 @@ dependencies {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = 'artemis-entity-builder'
+            artifactId = 'artemis-entity-builder-plugin'
             from components.java
             versionMapping {
                 usage('java-api') {
@@ -57,9 +57,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git://example.com/my-library.git'
-                    developerConnection = 'scm:git:ssh://example.com/my-library.git'
-                    url = 'http://example.com/my-library/'
+                    connection = 'scm:git:git://github.com/Dag-Rui/artemis-entity-builder.git'
+                    developerConnection = 'scm:git:ssh://github.com/Dag-Rui/artemis-entity-builder.git'
+                    url = 'http://github.com/Dag-Rui/artemis-entity-builder'
                 }
             }
         }
@@ -74,6 +74,3 @@ publishing {
     }
 }
 
-signing {
-    sign publishing.publications.mavenJava
-}

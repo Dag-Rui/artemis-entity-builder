@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import no.daffern.artemis.gen.ComponentInfo.MethodInfo;
+import org.gradle.api.file.FileCollection;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.JavaType;
 import org.jboss.forge.roaster.model.impl.JavaClassImpl;
@@ -15,7 +16,7 @@ import org.jboss.forge.roaster.model.source.ParameterSource;
 
 public class ComponentCollector {
 
-  public List<ComponentInfo> collect(List<File> files, List<String> superTypes) throws IOException {
+  public List<ComponentInfo> collect(FileCollection files, List<String> superTypes) throws IOException {
     List<JavaClassImpl> components = new ArrayList<>();
 
     for (File file : files) {

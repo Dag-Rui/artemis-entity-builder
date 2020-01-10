@@ -11,6 +11,8 @@ import java.util.List;
 import no.daffern.artemis.gen.ComponentCollector;
 import no.daffern.artemis.gen.ComponentInfo;
 import no.daffern.artemis.gen.SourceGenerator;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 
 public class Main {
 
@@ -18,19 +20,11 @@ public class Main {
 
     String outputUrl = "build/generated-sources/entity-factory/";
 
-    String[] urls = new String[]{"src/test/java/no/daffern/artemis/"};
-
-    List<File> files = new ArrayList<>();
-
-    for (String url : urls) {
-      Files.find(
-          Paths.get(url), 10, (file, attr) -> attr.isRegularFile())
-          .forEach(path -> files.add(path.toFile()));
-    }
+    FileCollection files = ImmutableFileCollection.of(new File("src/test/java/no/daffern/artemis/"));
 
     List<ComponentInfo> componentInfos = new ComponentCollector().collect(files, Collections.singletonList("com.artemis.Component"));
 
-    JavaFile[] outputFiles = new SourceGenerator().build(componentInfos, new File(outputUrl), "set");
+    JavaFile[] outputFiles = new SourceGenerator().build(componentInfos, "set");
 
     for (JavaFile file : outputFiles){
       file.writeTo(Paths.get(outputUrl));

@@ -45,6 +45,7 @@ public class SourceGenerator {
     //Entity method
     typeSpec.addMethod(MethodSpec.methodBuilder("entity")
         .addModifiers(Modifier.PUBLIC)
+        .returns(ClassName.get("com.artemis", "Entity"))
         .addCode("mapper.getEntity(entityId);\n")
         .build());
 

@@ -13,15 +13,15 @@ Example usage:
 
 To set up the plugin, add the following to build.gradle:
 
-apply plugin: BuilderPlugin
+    apply plugin: BuilderPlugin
 
-ext {
-    builderOutputDir = file("$buildDir/generated-sources/builder/")
-}
+    ext {
+        builderOutputDir = file("$buildDir/generated-sources/builder/")
+    }
 
-builder{
-    inputDirectories = sourceSets.main.java
-    outputFolder = builderOutputDir
-}
+    builder{
+        inputDirectories = sourceSets.main.java
+        outputFolder = builderOutputDir
+    }
 
 And run with "gradlew builder"

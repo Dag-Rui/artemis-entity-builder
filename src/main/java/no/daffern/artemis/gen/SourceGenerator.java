@@ -176,6 +176,8 @@ public class SourceGenerator {
         return TypeName.get(float.class);
       case "double":
         return TypeName.get(double.class);
+      case "boolean":
+        return TypeName.get(boolean.class);
       default:
         return ClassName.get(info.getPackage(), info.getName());
     }

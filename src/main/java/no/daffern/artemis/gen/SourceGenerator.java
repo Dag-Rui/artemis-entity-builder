@@ -49,10 +49,16 @@ public class SourceGenerator {
         .addCode("return mapper.getEntity(entityId);\n")
         .build());
 
+    //delete method
+    typeSpec.addMethod(MethodSpec.methodBuilder("delete")
+        .addModifiers(Modifier.PUBLIC)
+        .addCode("mapper.delete(entityId);\n")
+        .build());
+
     for (ComponentInfo componentInfo : componentInfos) {
       String mapperCode = "mapper." + getMapperName(componentInfo.getName());
       String methodName = StringUtils.uncapitalize(componentInfo.getName());
-      if (stripComponentName){
+      if (stripComponentName) {
         methodName = methodName.replace("Component", "");
       }
 
@@ -115,18 +121,7 @@ public class SourceGenerator {
   private JavaFile generateSuperMapper(List<ComponentInfo> componentInfos) {
     TypeSpec.Builder typeSpec = TypeSpec.classBuilder("SuperMapper")
         .superclass(ClassName.get("com.artemis", "BaseSystem"))
-        .addModifiers(Modifier.PUBLIC)
-        .addMethod(MethodSpec.methodBuilder("processSystem")
-            .addModifiers(Modifier.PROTECTED)
-            .addAnnotation(Override.class)
-            .build());
-
-    typeSpec.addMethod(MethodSpec.methodBuilder("getEntity")
-        .addModifiers(Modifier.PUBLIC)
-        .addParameter(TypeName.INT, "entityId")
-        .returns(ClassName.get("com.artemis", "Entity"))
-        .addCode("return getWorld().getEntity(entityId);\n")
-        .build());
+        .addModifiers(Modifier.PUBLIC);
 
     for (ComponentInfo componentInfo : componentInfos) {
       ClassName mapperName = ClassName.get("com.artemis", "ComponentMapper");
@@ -142,6 +137,18 @@ public class SourceGenerator {
       typeSpec.addField(fieldSpec);
     }
 
+    typeSpec.addMethod(MethodSpec.methodBuilder("processSystem")
+        .addModifiers(Modifier.PROTECTED)
+        .addAnnotation(Override.class)
+        .build());
+
+    typeSpec.addMethod(MethodSpec.methodBuilder("getEntity")
+        .addModifiers(Modifier.PUBLIC)
+        .addParameter(TypeName.INT, "entityId")
+        .returns(ClassName.get("com.artemis", "Entity"))
+        .addCode("return getWorld().getEntity(entityId);\n")
+        .build());
+
     typeSpec.addMethod(MethodSpec.methodBuilder("create")
         .addModifiers(Modifier.PUBLIC)
         .returns(ClassName.get("no.daffern.artemis", "EntityBuilder"))
@@ -153,6 +160,12 @@ public class SourceGenerator {
         .addParameter(TypeName.INT, "entityId")
         .returns(ClassName.get("no.daffern.artemis", "EntityBuilder"))
         .addCode("return new EntityBuilder(this, entityId);\n")
+        .build());
+
+    typeSpec.addMethod(MethodSpec.methodBuilder("delete")
+        .addModifiers(Modifier.PUBLIC)
+        .addParameter(TypeName.INT, "entityId")
+        .addCode("getWorld().delete(entityId);\n")
         .build());
 
     return JavaFile.builder("no.daffern.artemis", typeSpec.build()).build();

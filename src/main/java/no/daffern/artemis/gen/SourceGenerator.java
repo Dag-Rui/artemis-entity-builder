@@ -9,23 +9,24 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.List;
 import javax.lang.model.element.Modifier;
+import no.daffern.artemis.BuilderTask;
 import no.daffern.artemis.gen.ComponentInfo.MethodInfo;
 import no.daffern.artemis.gen.ComponentInfo.ParameterInfo;
 import org.jboss.forge.roaster._shade.org.apache.commons.lang3.StringUtils;
 
 public class SourceGenerator {
 
-  private static ClassName entityBuilderName = ClassName.get("no.daffern.artemis", "EntityBuilder");
-  private static ClassName superMapperName = ClassName.get("no.daffern.artemis", "SuperMapper");
+  private static final ClassName entityBuilderName = ClassName.get("no.daffern.artemis", "EntityBuilder");
+  private static final ClassName superMapperName = ClassName.get("no.daffern.artemis", "SuperMapper");
 
-  public JavaFile[] build(List<ComponentInfo> componentInfos, boolean stripComponentName) {
+  public JavaFile[] build(List<ComponentInfo> componentInfos, BuilderTask task) {
     JavaFile superMapper = generateSuperMapper(componentInfos);
-    JavaFile entityBuilder = generateBuilder(componentInfos, superMapper, stripComponentName);
+    JavaFile entityBuilder = generateBuilder(componentInfos, superMapper, task);
 
     return new JavaFile[]{superMapper, entityBuilder};
   }
 
-  private JavaFile generateBuilder(List<ComponentInfo> componentInfos, JavaFile mapperFile, boolean stripComponentName) {
+  private JavaFile generateBuilder(List<ComponentInfo> componentInfos, JavaFile mapperFile, BuilderTask task) {
     TypeSpec.Builder typeSpec = TypeSpec.classBuilder("EntityBuilder")
         .addModifiers(Modifier.PUBLIC)
         .addField(FieldSpec.builder(superMapperName, "mapper")
@@ -58,7 +59,7 @@ public class SourceGenerator {
     for (ComponentInfo componentInfo : componentInfos) {
       String mapperCode = "mapper." + getMapperName(componentInfo.getName());
       String methodName = StringUtils.uncapitalize(componentInfo.getName());
-      if (stripComponentName) {
+      if (task.isStripComponentName()) {
         methodName = methodName.replace("Component", "");
       }
 
@@ -73,8 +74,12 @@ public class SourceGenerator {
 
       //Other create methods
       for (MethodInfo methodInfo : componentInfo.getMethodInfos()) {
-        MethodSpec.Builder methodSpec = MethodSpec
-            .methodBuilder(methodName + StringUtils.capitalize(methodInfo.getMethodName()))
+        String createMethodName = methodName + StringUtils.capitalize(methodInfo.getMethodName());
+        if (methodInfo.getMethodName().equals(task.getInitMethodName())){
+          createMethodName = methodName;
+        }
+
+        MethodSpec.Builder methodSpec = MethodSpec.methodBuilder(createMethodName)
             .addModifiers(Modifier.PUBLIC)
             .returns(entityBuilderName)
             .addCode(componentInfo.getName() + " component = ")

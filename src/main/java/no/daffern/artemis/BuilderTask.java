@@ -27,12 +27,15 @@ public class BuilderTask extends DefaultTask {
   @Input
   private boolean stripComponentName = true;
 
+  @Input
+  private String initMethodName = "init";
+
   @TaskAction
   public void build() {
 
     try {
       List<ComponentInfo> infos = new ComponentCollector().collect(inputDirectories, componentSuperTypes);
-      JavaFile[] outputFiles = new SourceGenerator().build(infos, stripComponentName);
+      JavaFile[] outputFiles = new SourceGenerator().build(infos, this);
 
       for (JavaFile file : outputFiles) {
         file.writeTo(outputFolder);
@@ -73,5 +76,13 @@ public class BuilderTask extends DefaultTask {
 
   public void setStripComponentName(boolean stripComponentName) {
     this.stripComponentName = stripComponentName;
+  }
+
+  public String getInitMethodName() {
+    return initMethodName;
+  }
+
+  public void setInitMethodName(String initMethodName) {
+    this.initMethodName = initMethodName;
   }
 }

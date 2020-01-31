@@ -1,5 +1,6 @@
 package no.daffern.artemis.gen;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -7,6 +8,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 import java.util.List;
 import javax.lang.model.element.Modifier;
 import no.daffern.artemis.BuilderTask;
@@ -16,7 +18,7 @@ import org.jboss.forge.roaster._shade.org.apache.commons.lang3.StringUtils;
 
 public class SourceGenerator {
 
-  private static final ClassName entityBuilderName = ClassName.get("no.daffern.artemis", "EntityBuilder");
+  private static final TypeVariableName entityBuilderName = TypeVariableName.get("T", ClassName.get("no.daffern.artemis", "EntityBuilder"));
   private static final ClassName superMapperName = ClassName.get("no.daffern.artemis", "SuperMapper");
 
   public JavaFile[] build(List<ComponentInfo> componentInfos, BuilderTask task) {
@@ -28,6 +30,8 @@ public class SourceGenerator {
 
   private JavaFile generateBuilder(List<ComponentInfo> componentInfos, JavaFile mapperFile, BuilderTask task) {
     TypeSpec.Builder typeSpec = TypeSpec.classBuilder("EntityBuilder")
+        .addTypeVariable(entityBuilderName)
+        .addAnnotation(AnnotationSpec.builder(SuppressWarnings.class).addMember("value", "\"unchecked\"").build())
         .addModifiers(Modifier.PUBLIC)
         .addField(FieldSpec.builder(superMapperName, "mapper")
             .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
@@ -69,13 +73,13 @@ public class SourceGenerator {
           .addModifiers(Modifier.PUBLIC)
           .returns(entityBuilderName)
           .addCode(mapperCode + ".create(entityId);\n")
-          .addCode("return this;\n")
+          .addCode("return (T) this;\n")
           .build());
 
       //Other create methods
       for (MethodInfo methodInfo : componentInfo.getMethodInfos()) {
         String createMethodName = methodName + StringUtils.capitalize(methodInfo.getMethodName());
-        if (methodInfo.getMethodName().equals(task.getInitMethodName())){
+        if (methodInfo.getMethodName().equals(task.getInitMethodName())) {
           createMethodName = methodName;
         }
 
@@ -95,7 +99,7 @@ public class SourceGenerator {
         if (parameters.length() > 0) {
           methodSpec.addCode("component." + methodInfo.getMethodName())
               .addCode("(" + parameters.substring(0, parameters.length() - 2) + ");\n")
-              .addCode("return this;\n");
+              .addCode("return (T) this;\n");
           typeSpec.addMethod(methodSpec.build());
         }
       }

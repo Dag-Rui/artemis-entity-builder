@@ -3,7 +3,7 @@ package no.daffern.artemis;
 import com.squareup.javapoet.JavaFile;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import no.daffern.artemis.gen.ComponentCollector;
 import no.daffern.artemis.gen.ComponentInfo;
@@ -22,7 +22,7 @@ public class BuilderTask extends DefaultTask {
   private File outputFolder;
 
   @Input
-  private List<String> componentSuperTypes = Collections.singletonList("com.artemis.Component");
+  private List<String> componentSuperTypes = Arrays.asList("com.artemis.Component", "com.artemis.PooledComponent");
 
   @Input
   private boolean stripComponentName = true;

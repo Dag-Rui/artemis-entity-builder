@@ -3,7 +3,7 @@ A gradle plugin for generating source for an entity builder class.
 Similar to https://github.com/junkdog/artemis-odb/wiki/Fluid-Entity-Gradle, but instead uses java source to create the 
 SuperMapper and EntityBuilder. This means the components does not needs its own project.
 
-Example usage:
+Example usage with classes TransformComponent, InterpolateComponent, CameraFocusComponent and TextureComponent:
 
     EntityBuilder ship = superMapper.create()
         .transformSet(0, 0, 0)

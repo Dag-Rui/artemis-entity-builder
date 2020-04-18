@@ -1,6 +1,7 @@
 package no.daffern.artemis.gen;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ComponentInfo {
@@ -49,6 +50,12 @@ public class ComponentInfo {
       return parameterInfo;
     }
 
+    public ParameterInfo addParameterSpec(String qualifiedName, String variableName, List<String> templateNames) {
+      ParameterInfo parameterInfo = new ParameterInfo(qualifiedName, variableName, templateNames);
+      parameterInfos.add(parameterInfo);
+      return parameterInfo;
+    }
+
     public String getMethodName() {
       return methodName;
     }
@@ -62,10 +69,17 @@ public class ComponentInfo {
 
     private String qualifiedName;
     private String variableName;
+    private List<String> qualifiedTemplateNames;
 
     public ParameterInfo(String qualifiedName, String variableName) {
       this.qualifiedName = qualifiedName;
       this.variableName = variableName;
+    }
+
+    public ParameterInfo(String qualifiedName, String variableName, List<String> qualifiedTemplateNames) {
+      this.qualifiedName = qualifiedName;
+      this.variableName = variableName;
+      this.qualifiedTemplateNames = qualifiedTemplateNames;
     }
 
     public String getQualifiedName() {
@@ -76,20 +90,9 @@ public class ComponentInfo {
       return variableName;
     }
 
-    public String getName() {
-      if (qualifiedName.contains(".")) {
-        return qualifiedName.substring(qualifiedName.lastIndexOf('.') + 1);
-      }
-      return qualifiedName;
-    }
-
-    public String getPackage() {
-      if (qualifiedName.contains(".")) {
-        return qualifiedName.substring(0, qualifiedName.lastIndexOf('.'));
-      }
-      return qualifiedName;
+    public List<String> getQualifiedTemplateNames() {
+      return qualifiedTemplateNames;
     }
   }
-
 
 }

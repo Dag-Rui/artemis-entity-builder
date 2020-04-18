@@ -1,19 +1,21 @@
 package no.daffern.artemis.gen;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import no.daffern.artemis.gen.ComponentInfo.MethodInfo;
 import org.gradle.api.file.FileCollection;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.JavaType;
+import org.jboss.forge.roaster.model.Type;
 import org.jboss.forge.roaster.model.impl.JavaClassImpl;
 import org.jboss.forge.roaster.model.impl.ParameterImpl;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.MethodSource;
 import org.jboss.forge.roaster.model.source.ParameterSource;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ComponentCollector {
 
@@ -57,8 +59,14 @@ public class ComponentCollector {
 
           if (parameter instanceof ParameterImpl) {
             ParameterImpl impl = (ParameterImpl) parameter;
+            Type paramType = impl.getType();
 
-            methodInfo.addParameterSpec(impl.getType().getQualifiedName(), impl.getName());
+            List<String> genericClasses = new ArrayList<>();
+            for (Object type1 : paramType.getTypeArguments()) {
+              genericClasses.add(((Type)type1).getQualifiedName());
+            }
+
+            methodInfo.addParameterSpec(impl.getType().getQualifiedName(), impl.getName(), genericClasses);
           } else {
             System.err.println("Ignoring parameter of type " + parameter.getClass().getName());
           }

@@ -1,20 +1,13 @@
 package no.daffern.artemis.gen;
 
-import com.squareup.javapoet.AnnotationSpec;
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.TypeVariableName;
-import java.util.List;
-import javax.lang.model.element.Modifier;
+import com.squareup.javapoet.*;
 import no.daffern.artemis.BuilderTask;
 import no.daffern.artemis.gen.ComponentInfo.MethodInfo;
 import no.daffern.artemis.gen.ComponentInfo.ParameterInfo;
 import org.jboss.forge.roaster._shade.org.apache.commons.lang3.StringUtils;
+
+import javax.lang.model.element.Modifier;
+import java.util.List;
 
 public class SourceGenerator {
 
@@ -31,7 +24,7 @@ public class SourceGenerator {
   private JavaFile generateBuilder(List<ComponentInfo> componentInfos, JavaFile mapperFile, BuilderTask task) {
     TypeSpec.Builder typeSpec = TypeSpec.classBuilder("EntityBuilder")
         .addTypeVariable(entityBuilderName)
-        .addAnnotation(AnnotationSpec.builder(SuppressWarnings.class).addMember("value", "\"unchecked\"").build())
+        .addAnnotation(AnnotationSpec.builder(SuppressWarnings.class).addMember("value", "\"all\"").build())
         .addModifiers(Modifier.PUBLIC)
         .addField(FieldSpec.builder(superMapperName, "mapper")
             .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
@@ -46,6 +39,13 @@ public class SourceGenerator {
             .addCode("this.mapper = mapper;\n")
             .addCode("this.entityId = entityId;\n")
             .build());
+
+    //Entity id
+    typeSpec.addMethod(MethodSpec.methodBuilder("entityId")
+        .addModifiers(Modifier.PUBLIC)
+        .returns(TypeName.INT)
+        .addCode("return entityId;\n")
+        .build());
 
     //Entity method
     typeSpec.addMethod(MethodSpec.methodBuilder("entity")
@@ -92,7 +92,11 @@ public class SourceGenerator {
         StringBuilder parameters = new StringBuilder();
 
         for (ParameterInfo parameterInfo : methodInfo.getParameterInfos()) {
-          methodSpec.addParameter(findTypeName(parameterInfo), parameterInfo.getVariableName());
+
+          TypeName typeName = Utils.guessTypeName(parameterInfo.getQualifiedName(), parameterInfo.getQualifiedTemplateNames());
+          methodSpec.addParameter(ParameterSpec.builder(typeName, parameterInfo.getVariableName())
+              .build());
+
           parameters.append(parameterInfo.getVariableName()).append(", ");
         }
 
@@ -184,24 +188,4 @@ public class SourceGenerator {
     return StringUtils.uncapitalize(componentName) + "Mapper";
   }
 
-  private TypeName findTypeName(ParameterInfo info) {
-    switch (info.getQualifiedName()) {
-      case "string":
-        return TypeName.get(String.class);
-      case "int":
-        return TypeName.get(int.class);
-      case "byte":
-        return TypeName.get(byte.class);
-      case "long":
-        return TypeName.get(long.class);
-      case "float":
-        return TypeName.get(float.class);
-      case "double":
-        return TypeName.get(double.class);
-      case "boolean":
-        return TypeName.get(boolean.class);
-      default:
-        return ClassName.get(info.getPackage(), info.getName());
-    }
-  }
 }

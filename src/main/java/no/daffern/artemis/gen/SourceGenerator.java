@@ -11,17 +11,28 @@ import java.util.List;
 
 public class SourceGenerator {
 
-  private static final TypeVariableName entityBuilderName = TypeVariableName.get("T", ClassName.get("no.daffern.artemis", "EntityBuilder"));
-  private static final ClassName superMapperName = ClassName.get("no.daffern.artemis", "SuperMapper");
+  private final TypeVariableName entityBuilderName;
+  private final ClassName superMapperName;
+  private final boolean stripComponentName;
+  private final String initMethodName;
+  private final String outputPackage;
 
-  public JavaFile[] build(List<ComponentInfo> componentInfos, BuilderTask task) {
+  public SourceGenerator(BuilderTask task) {
+    this.stripComponentName = task.isStripComponentName();
+    this.initMethodName = task.getInitMethodName();
+    this.outputPackage = task.getOutputPackage();
+    this.entityBuilderName = TypeVariableName.get("T", ClassName.get(outputPackage, "EntityBuilder"));
+    this.superMapperName = ClassName.get(outputPackage, "SuperMapper");
+  }
+
+  public JavaFile[] build(List<ComponentInfo> componentInfos) {
     JavaFile superMapper = generateSuperMapper(componentInfos);
-    JavaFile entityBuilder = generateBuilder(componentInfos, superMapper, task);
+    JavaFile entityBuilder = generateBuilder(componentInfos, superMapper);
 
     return new JavaFile[]{superMapper, entityBuilder};
   }
 
-  private JavaFile generateBuilder(List<ComponentInfo> componentInfos, JavaFile mapperFile, BuilderTask task) {
+  private JavaFile generateBuilder(List<ComponentInfo> componentInfos, JavaFile mapperFile) {
     TypeSpec.Builder typeSpec = TypeSpec.classBuilder("EntityBuilder")
         .addTypeVariable(entityBuilderName)
         .addAnnotation(AnnotationSpec.builder(SuppressWarnings.class).addMember("value", "\"all\"").build())
@@ -63,7 +74,7 @@ public class SourceGenerator {
     for (ComponentInfo componentInfo : componentInfos) {
       String mapperCode = "mapper." + getMapperName(componentInfo.getName());
       String methodName = StringUtils.uncapitalize(componentInfo.getName());
-      if (task.isStripComponentName()) {
+      if (stripComponentName) {
         methodName = methodName.replace("Component", "");
       }
 
@@ -79,7 +90,7 @@ public class SourceGenerator {
       //Other create methods
       for (MethodInfo methodInfo : componentInfo.getMethodInfos()) {
         String createMethodName = methodName + StringUtils.capitalize(methodInfo.getMethodName());
-        if (methodInfo.getMethodName().equals(task.getInitMethodName())) {
+        if (methodInfo.getMethodName().equals(initMethodName)) {
           createMethodName = methodName;
         }
 
@@ -128,7 +139,7 @@ public class SourceGenerator {
           .build());
     }
 
-    return JavaFile.builder("no.daffern.artemis", typeSpec.build()).build();
+    return JavaFile.builder(outputPackage, typeSpec.build()).build();
   }
 
   private JavaFile generateSuperMapper(List<ComponentInfo> componentInfos) {
@@ -164,15 +175,15 @@ public class SourceGenerator {
 
     typeSpec.addMethod(MethodSpec.methodBuilder("create")
         .addModifiers(Modifier.PUBLIC)
-        .returns(ClassName.get("no.daffern.artemis", "EntityBuilder"))
+        .returns(ClassName.get(outputPackage, "EntityBuilder<?>"))
         .addCode("return get(getWorld().create());\n")
         .build());
 
     typeSpec.addMethod(MethodSpec.methodBuilder("get")
         .addModifiers(Modifier.PUBLIC)
         .addParameter(TypeName.INT, "entityId")
-        .returns(ClassName.get("no.daffern.artemis", "EntityBuilder"))
-        .addCode("return new EntityBuilder(this, entityId);\n")
+        .returns(ClassName.get(outputPackage, "EntityBuilder<?>"))
+        .addCode("return new EntityBuilder<>(this, entityId);\n")
         .build());
 
     typeSpec.addMethod(MethodSpec.methodBuilder("delete")
@@ -181,7 +192,7 @@ public class SourceGenerator {
         .addCode("getWorld().delete(entityId);\n")
         .build());
 
-    return JavaFile.builder("no.daffern.artemis", typeSpec.build()).build();
+    return JavaFile.builder(outputPackage, typeSpec.build()).build();
   }
 
   private String getMapperName(String componentName) {

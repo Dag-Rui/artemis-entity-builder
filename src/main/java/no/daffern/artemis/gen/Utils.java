@@ -4,6 +4,9 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 public class Utils {
@@ -42,8 +45,6 @@ public class Utils {
   }
 
   public static TypeName guessTypeName(String qualifiedName) {
-
-
     switch (qualifiedName) {
       case "string":
         return ClassNames.STRING;
@@ -64,11 +65,22 @@ public class Utils {
       case "char":
         return TypeName.CHAR;
       default:
-        if (qualifiedName.endsWith("?")){
+        if (qualifiedName.endsWith("?")) {
           return ClassName.OBJECT;
         }
         return ClassName.bestGuess(qualifiedName);
     }
+  }
+
+  public static Path packageToPath(Path basePath, String packageName) throws IOException {
+    Path outputDirectory = basePath;
+    if (!packageName.isEmpty()) {
+      for (String packageComponent : packageName.split("\\.")) {
+        outputDirectory = outputDirectory.resolve(packageComponent);
+      }
+      Files.createDirectories(outputDirectory);
+    }
+    return outputDirectory;
   }
 
 }

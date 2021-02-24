@@ -7,10 +7,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Used to ignore methods or types from builder.
+ * Can be used on Component type or method to exclude it from the generated source.
  */
 @Retention(RetentionPolicy.SOURCE)
-@Target({ElementType.FIELD, ElementType.TYPE})
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Documented
 public @interface BuilderIgnore {
 

@@ -1,7 +1,7 @@
 package no.daffern.artemis.gen;
 
 import com.squareup.javapoet.*;
-import no.daffern.artemis.BuilderTask;
+import no.daffern.artemis.EntityBuilderTask;
 import no.daffern.artemis.gen.ComponentInfo.MethodInfo;
 import no.daffern.artemis.gen.ComponentInfo.ParameterInfo;
 import org.jboss.forge.roaster._shade.org.apache.commons.lang3.StringUtils;
@@ -17,7 +17,7 @@ public class SourceGenerator {
   private final String initMethodName;
   private final String outputPackage;
 
-  public SourceGenerator(BuilderTask task) {
+  public SourceGenerator(EntityBuilderTask task) {
     this.stripComponentName = task.isStripComponentName();
     this.initMethodName = task.getInitMethodName();
     this.outputPackage = task.getOutputPackage();

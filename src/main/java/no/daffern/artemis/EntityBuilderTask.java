@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-public class BuilderTask extends DefaultTask {
+public class EntityBuilderTask extends DefaultTask {
 
   /**
    * Where to look for components.

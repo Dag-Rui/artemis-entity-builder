@@ -26,4 +26,11 @@ To set up the plugin, add the following to build.gradle:
         initMethodName = "set"
     }
 
+    buildscript {
+        dependencies {
+            classpath 'no.daffern.artemis:artemis-entity-builder-plugin:1.0'
+        }
+    }
+}
+
 And run with "gradlew builder"

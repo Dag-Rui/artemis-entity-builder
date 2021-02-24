@@ -1,21 +1,24 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'signing'
 }
 
 group 'no.daffern.artemis'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 sourceCompatibility = 1.8
 
 repositories {
     mavenLocal()
     mavenCentral()
+    jcenter()
+    google()
 }
 
 java {
-   // withJavadocJar()
-   // withSourcesJar()
+    // withJavadocJar()
+    // withSourcesJar()
 }
 
 dependencies {

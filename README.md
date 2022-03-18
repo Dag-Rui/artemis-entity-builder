@@ -1,4 +1,4 @@
-A gradle plugin for generating source for an entity builder class. 
+A gradle plugin for artemis-odb (https://github.com/junkdog/artemis-odb) for generating source for an entity builder class. 
 
 Similar to https://github.com/junkdog/artemis-odb/wiki/Fluid-Entity-Gradle, but instead uses java files to create the 
 SuperMapper and EntityBuilder. This means the components does not needs its own project.

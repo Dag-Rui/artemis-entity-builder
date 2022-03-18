@@ -12,7 +12,7 @@ Example usage with classes TransformComponent, InterpolateComponent and TextureC
 
 To set up the plugin, add the following to build.gradle:
 
-    apply plugin: BuilderPlugin
+    apply plugin: no.daffern.artemis.EntityBuilderPlugin
 
     compileJava.dependsOn(builder)
 
@@ -33,4 +33,4 @@ To set up the plugin, add the following to build.gradle:
     }
 }
 
-And run with "gradlew builder"
+And run with "gradlew entityBuilder"

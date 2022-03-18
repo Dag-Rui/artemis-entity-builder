@@ -14,12 +14,14 @@ import org.jboss.forge.roaster.model.source.ParameterSource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ComponentCollector {
 
-  public List<ComponentInfo> collect(FileCollection files, List<String> superTypes) throws IOException {
+  public List<ComponentInfo> collect(Set<File> files, List<String> superTypes) throws IOException {
     List<JavaClassImpl> components = new ArrayList<>();
 
     for (File file : files) {
@@ -41,6 +43,10 @@ public class ComponentCollector {
     List<ComponentInfo> components = new ArrayList<>();
 
     for (JavaClassImpl type : types) {
+      if (type.isAbstract() || !type.isPublic() || type.isInterface()) {
+        continue;
+      }
+
       if (type.hasAnnotation(BuilderIgnore.class)) {
         continue;
       }
@@ -49,6 +55,10 @@ public class ComponentCollector {
       components.add(componentInfo);
 
       for (MethodSource<JavaClassSource> method : type.getMethods()) {
+        if (method.isStatic() || method.isAbstract() || !method.isPublic()) {
+          continue;
+        }
+
         if (method.hasAnnotation(BuilderIgnore.class)) {
           continue;
         }
@@ -63,7 +73,7 @@ public class ComponentCollector {
 
             List<String> genericClasses = new ArrayList<>();
             for (Object type1 : paramType.getTypeArguments()) {
-              genericClasses.add(((Type)type1).getQualifiedName());
+              genericClasses.add(((Type) type1).getQualifiedName());
             }
 
             methodInfo.addParameterSpec(impl.getType().getQualifiedName(), impl.getName(), genericClasses);

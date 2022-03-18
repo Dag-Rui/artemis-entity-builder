@@ -62,8 +62,8 @@ public class EntityBuilderTask extends DefaultTask {
   public void build() {
 
     try {
-      List<ComponentInfo> infos = new ComponentCollector().collect(inputDirectories, componentBaseTypes);
-      JavaFile[] outputFiles = new SourceGenerator(this).build(infos);
+      List<ComponentInfo> infos = new ComponentCollector().collect(inputDirectories.getFiles(), componentBaseTypes);
+      JavaFile[] outputFiles = new SourceGenerator(stripComponentName, initMethodName, outputPackage).build(infos);
 
       for (JavaFile javaFile : outputFiles) {
         Path filePath = Utils.packageToPath(outputFolder.toPath(), javaFile.packageName);
